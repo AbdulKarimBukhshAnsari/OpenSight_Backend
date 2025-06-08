@@ -1,0 +1,24 @@
+{
+  "name": "opensight_backend",
+  "version": "1.0.0",
+  "description": "OpenSight_Backend is the server-side API that powers the OpenSight video streaming platform, handling user authentication, video management, and real-time data processing. It provides secure and scalable endpoints to support all frontend features for a seamless user experience.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbdulKarimBukhshAnsari/OpenSight_Backend.git"
+  },
+  "author": "Abdul Karim Bukhsh Ansari",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AbdulKarimBukhshAnsari/OpenSight_Backend/issues"
+  },
+  "homepage": "https://github.com/AbdulKarimBukhshAnsari/OpenSight_Backend#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
+  }
+}
