@@ -13,6 +13,7 @@ const uploadOnCloudinary = async (localFilePath) => {
         const response = await cloudinary.uploader.upload(localFilePath , {
             resource_type : "auto"
         })
+        fs.unlinkSync(localFilePath);
         return response ; // we can get the response URL which we will save into our DataBase so that we can aceess it later on 
         
     } catch (error) {
