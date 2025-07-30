@@ -25,6 +25,9 @@ const generateAccessAndRefreshToken = async (userId) => {
   }
 };
 
+
+
+
 const registerUser = asyncHandler(async (req, res, next) => {
   // get the data coming from the frontend and do validation that user has provided the data
   const { email, password, fullName, userName } = req.body;
@@ -83,6 +86,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, createdUser, "User Created Successfully"));
 });
 
+
+
+
 const loginUser = asyncHandler(async (req, res, next) => {
   // get the data
   const { email, password, userName } = req.body;
@@ -105,6 +111,40 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
   const isPasswordCorrect = user.isPasswordCorrect(password);
   if (!isPasswordCorrect) throw new ApiError(407, "Incorrect Credentials");
+  
+
+  // getting the Access Token and Refresh Tokens 
+  const {accessToken , refreshToken } = await generateAccessAndRefreshToken(user._id) ;
+  
+  // getting the user with the Access token 
+  const loggedInUser = await User.findById(user._id).select("-password -accessToken") ;
+
+  // setting the option for cookie 
+  const options = {
+    httpOnly : true , 
+    secure : true 
+  }
+
+  return res.status(200)
+         .cookie("accessToken" , accessToken)
+         .cookie("refreshToken" , refreshToken)
+         .json(
+          new ApiResponse(
+            {
+              user : loggedInUser , accessToken, refreshToken 
+            }
+            ,
+            200 , 
+            "Successfully logged in the user "
+          )
+          
+
+         )
+
+
 });
+
+
+const logoutUser = asyncHandler (async(req , res , next) =>{})
 
 export { registerUser, loginUser };
