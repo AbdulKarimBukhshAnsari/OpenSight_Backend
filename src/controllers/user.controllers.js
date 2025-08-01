@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -144,6 +145,78 @@ const loginUser = asyncHandler(async (req, res, next) => {
     );
 });
 
-const logoutUser = asyncHandler(async (req, res, next) => {});
+const logoutUser = asyncHandler(async (req, res, next) => {
+  // to remove the refresh token
+  if (req && req.user) {
+    req.user.refreshToken = undefined;
+    await req.user.save({ validateBeforeSave: false });
+  }
 
-export { registerUser, loginUser };
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(201)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse({}, 201, "Successfully Logged out the user"));
+});
+
+const getAccessToken = asyncHandler(async (req, res, next) => {
+  const oldRefreshToken = req?.cookies?.refreshToken;
+  if (!oldRefreshToken) throw new ApiError(401, "Unauthorized Access");
+
+  // decoding the token and getting the verfication
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(oldRefreshToken, REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      throw new ApiError(401, "Refresh token expired, please log in again");
+    }
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  const user = await User.findById(decodedToken._id).select("-password");
+  if (!user) throw new ApiError(403, "User is not valid");
+
+  const { accessToken, refreshToken: newRefreshToken } =
+    await generateAccessAndRefreshToken(user.id);
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  const updatedUser = await User.findByIdAndUpdate(
+    user.id,
+    {
+      $set: {
+        refreshToken: newRefreshToken,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password -refreshToken");
+  if (!updatedUser)
+    throw new ApiError(
+      501,
+      "Something went wrong while updating the refersh Token"
+    );
+
+  return res
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
+    .json(
+      new ApiResponse({
+        updatedUser,
+        accessToken,
+        refreshToken: newRefreshToken,
+      })
+    );
+});
+
+export { registerUser, loginUser, logoutUser, getAccessToken };

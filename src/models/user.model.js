@@ -67,9 +67,9 @@ userSchema.methods.generateAccessToken =  function(){
         {
             _id : this._id , // we will get this from the MongoDB
         },
-        process.env.ACESS_TOKEN_SECRET,
+        process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn : process.env.ACESS_TOKEN_EXPIRY
+            expiresIn : process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 
