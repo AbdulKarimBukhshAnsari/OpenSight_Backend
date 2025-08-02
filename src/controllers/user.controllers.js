@@ -171,7 +171,7 @@ const getAccessToken = asyncHandler(async (req, res, next) => {
   // decoding the token and getting the verfication
   let decodedToken;
   try {
-    decodedToken = jwt.verify(oldRefreshToken, REFRESH_TOKEN_SECRET);
+    decodedToken = jwt.verify(oldRefreshToken, process.env.REFRESH_TOKEN_SECRET);
   } catch (err) {
     if (err.name === "TokenExpiredError") {
       throw new ApiError(401, "Refresh token expired, please log in again");
@@ -183,7 +183,7 @@ const getAccessToken = asyncHandler(async (req, res, next) => {
   if (!user) throw new ApiError(403, "User is not valid");
 
   const { accessToken, refreshToken: newRefreshToken } =
-    await generateAccessAndRefreshToken(user.id);
+    await generateAccessAndRefreshToken(user._id);
 
   const options = {
     httpOnly: true,
@@ -191,7 +191,7 @@ const getAccessToken = asyncHandler(async (req, res, next) => {
   };
 
   const updatedUser = await User.findByIdAndUpdate(
-    user.id,
+    user._id,
     {
       $set: {
         refreshToken: newRefreshToken,
