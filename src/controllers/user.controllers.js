@@ -245,4 +245,20 @@ const changeCurrentPassword = asyncHandler(async (req , res , next) => {
   )
 })
 
-export { registerUser, loginUser, logoutUser, getAccessToken , changeCurrentPassword };
+const getCurrentUser = asyncHandler(async(req , res , next) => {
+ 
+  const userDetails = await User.findById(req.user.id).select("-password -refreshToken") ;
+  
+  return res.status(200).
+  json(
+    new ApiResponse(
+      201 , 
+      userDetails,
+      "User Details has been recieved"
+    )
+  )
+})
+
+
+
+export { registerUser, loginUser, logoutUser, getAccessToken , changeCurrentPassword , getCurrentUser };
