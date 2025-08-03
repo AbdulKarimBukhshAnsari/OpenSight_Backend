@@ -18,7 +18,7 @@ const verifyJwt = asyncHandler(async(req , res , next) => {
     
         if(!decodedToken) throw new ApiError(500 , "Can't verify the JWT token") ;
     
-        const user = await User.findById(decodedToken?._id).select("-password") ;
+        const user = await User.findById(decodedToken?._id) ;
     
         if(user) {
             // saving the data in the req body 

@@ -109,8 +109,9 @@ const loginUser = asyncHandler(async (req, res, next) => {
       "User does  not Exist , kindly make your account first"
     );
 
-  const isPasswordCorrect = user.isPasswordCorrect(password);
-  if (!isPasswordCorrect) throw new ApiError(407, "Incorrect Credentials");
+  const PasswordCorrect = await user.isPasswordCorrect(password);
+
+  if (!PasswordCorrect) throw new ApiError(407, "Incorrect Credentials");
 
   // getting the Access Token and Refresh Tokens
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
@@ -219,4 +220,29 @@ const getAccessToken = asyncHandler(async (req, res, next) => {
     );
 });
 
-export { registerUser, loginUser, logoutUser, getAccessToken };
+const changeCurrentPassword = asyncHandler(async (req , res , next) => {
+  const {oldPassword , newPassword } = req.body ; 
+
+  if(!oldPassword || !newPassword) throw new ApiError(401 , "Kindly Provide both of the Password") ;
+
+  const checkPasswordCorrect = await req?.user?.isPasswordCorrect(oldPassword)
+
+  if(!checkPasswordCorrect) throw new ApiError(402 , "Given Password is wrong , Kindly Enter Correct old password")
+
+  // now we have checked whether user has provided both passowrds and correct password then we will update the new pass 
+  req.user.password = newPassword ;
+
+  await req.user.save({validateBeforeSave :true}) ;
+
+  return res.
+  status(200).
+  json(
+    new ApiResponse(
+      {} ,
+      201 , 
+      "Password Changed Successfully"
+    )
+  )
+})
+
+export { registerUser, loginUser, logoutUser, getAccessToken , changeCurrentPassword };
