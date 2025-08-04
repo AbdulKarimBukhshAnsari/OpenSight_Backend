@@ -100,7 +100,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, "All Fields Are Required");
   }
   const user = await User.findOne({
-    $or: [{ email }, { userName }],
+    $and: [{ email }, { userName }],
   });
 
   if (!user)
@@ -247,7 +247,7 @@ const changeCurrentPassword = asyncHandler(async (req , res , next) => {
 
 const getCurrentUser = asyncHandler(async(req , res , next) => {
  
-  const userDetails = await User.findById(req.user.id).select("-password -refreshToken") ;
+  const userDetails = await User.findById(req.user._id).select("-password -refreshToken") ;
   
   return res.status(200).
   json(
@@ -259,6 +259,39 @@ const getCurrentUser = asyncHandler(async(req , res , next) => {
   )
 })
 
+const changeUserDetails = asyncHandler(async(req , res , next) =>{
+
+  const {userName , fullName , email} = req.body ; 
+  if(!userName || !fullName || !email) throw new ApiError(401 , "All Fields are Required") ;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id , 
+    {
+      $set : {
+        userName ,
+        fullName ,
+        email
+      }
+    },
+    {
+      new : true 
+    }
+  ).select("-password -refreshToken")
+  if(!updatedUser) throw new ApiError(501 , "Something Went Wrong while Changing the Data");
+
+  return res
+  .status(200)
+  .json(
+    new ApiResponse(
+      updatedUser ,
+      201 , 
+      "Successfully Changed the User Data"
+    )
+  )
 
 
-export { registerUser, loginUser, logoutUser, getAccessToken , changeCurrentPassword , getCurrentUser };
+
+})
+
+
+export { registerUser, loginUser, logoutUser, getAccessToken , changeCurrentPassword , getCurrentUser , changeUserDetails };
